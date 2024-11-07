@@ -1,5 +1,6 @@
 package dev.larrox;
 
+import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.ItemEntity;
@@ -68,7 +69,7 @@ public class Main {
         globalEventHandler.addListener(ServerListPingEvent.class, event -> {
             event.setResponseData(new ResponseData());
             event.getResponseData().addEntries(MinecraftServer.getConnectionManager().getOnlinePlayers());
-            event.getResponseData().setDescription("a §f§nNothingMC§7 Server.");
+            event.getResponseData().setDescription(Component.text("a §f§nNothingMC§7 Server."));
         });
 
         MojangAuth.init();
