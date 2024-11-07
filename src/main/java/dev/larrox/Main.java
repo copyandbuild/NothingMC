@@ -1,8 +1,13 @@
 package dev.larrox;
 
+import dev.larrox.commands.DeopCommand;
+import dev.larrox.commands.GamemodeCommand;
+import dev.larrox.commands.OperatorCommand;
+import dev.larrox.commands.WeatherCommand;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.ItemEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
@@ -30,7 +35,12 @@ public class Main {
         InstanceManager instanceManager = MinecraftServer.getInstanceManager();
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(new AnvilLoader("worlds/world"));
 
-        instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 41, Block.GRASS_BLOCK));
+        MinecraftServer.getCommandManager().register(new GamemodeCommand());
+        MinecraftServer.getCommandManager().register(new WeatherCommand());
+        MinecraftServer.getCommandManager().register(new OperatorCommand());
+        MinecraftServer.getCommandManager().register(new DeopCommand());
+
+        instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(-20, 0, Block.GRASS_BLOCK));
 
         instanceContainer.setChunkSupplier(LightingChunk::new);
 
@@ -38,18 +48,25 @@ public class Main {
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
             event.setSpawningInstance(instanceContainer);
-            player.setRespawnPoint(new Pos(0, 41, 0));
+            player.setRespawnPoint(new Pos(0, 1, 0));
         });
 
         globalEventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
 
             var material = event.getBlock().registry().material();
+            var player = event.getPlayer();
 
-            if (material != null) {
+            if (material != null && player.getGameMode() != GameMode.CREATIVE) {
                 var itemstack = ItemStack.of(material);
                 ItemEntity itementity = new ItemEntity(itemstack);
                 itementity.setInstance(event.getInstance(), event.getBlockPosition().add(0.5, 0.6, 0.5));
                 itementity.setPickupDelay(Duration.ofMillis(500));
+            }
+
+            if (material != null && player.getGameMode() == GameMode.CREATIVE) {
+                var itemstack = ItemStack.of(material);
+                ItemEntity itemEntity = new ItemEntity(itemstack);
+                itemEntity.remove();
             }
         });
 
